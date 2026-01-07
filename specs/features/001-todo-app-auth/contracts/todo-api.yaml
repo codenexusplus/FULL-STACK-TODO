@@ -1,0 +1,173 @@
+openapi: 3.0.0
+info:
+  title: Todo API
+  description: API for managing todo items in the Todo App
+  version: 1.0.0
+paths:
+  /api/todos:
+    get:
+      summary: Get all todos for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of todos for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Todo'
+        '401':
+          description: Unauthorized - user not authenticated
+    post:
+      summary: Create a new todo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoCreate'
+      responses:
+        '201':
+          description: Todo created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized - user not authenticated
+  /api/todos/{id}:
+    get:
+      summary: Get a specific todo
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Todo details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '401':
+          description: Unauthorized - user not authenticated
+        '404':
+          description: Todo not found
+    patch:
+      summary: Update a specific todo
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoUpdate'
+      responses:
+        '200':
+          description: Todo updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized - user not authenticated
+        '404':
+          description: Todo not found
+    delete:
+      summary: Delete a specific todo
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Todo deleted successfully
+        '401':
+          description: Unauthorized - user not authenticated
+        '404':
+          description: Todo not found
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Todo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Buy groceries"
+        description:
+          type: string
+          example: "Milk, bread, eggs"
+        is_completed:
+          type: boolean
+          example: false
+        user_id:
+          type: integer
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T10:00:00Z"
+      required:
+        - id
+        - title
+        - is_completed
+        - user_id
+        - created_at
+        - updated_at
+    TodoCreate:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Buy groceries"
+        description:
+          type: string
+          example: "Milk, bread, eggs"
+      required:
+        - title
+    TodoUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Buy groceries"
+        description:
+          type: string
+          example: "Milk, bread, eggs"
+        is_completed:
+          type: boolean
+          example: true
