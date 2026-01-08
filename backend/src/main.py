@@ -29,11 +29,15 @@ app = FastAPI(title="Todo App API")
 # 4. CORS Middleware (Must be first)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",  # Local Next.js development
+        "http://localhost:3001",  # Alternative local Next.js port
+        "https://*.vercel.app",   # Vercel deployments
+        "http://localhost:8002",  # Allow backend to backend requests
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    allow_origin_regex=r"https?://localhost:3000",
 )
 
 # 5. Global Error Handler

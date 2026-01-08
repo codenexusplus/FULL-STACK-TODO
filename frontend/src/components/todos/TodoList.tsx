@@ -10,7 +10,7 @@ interface Task {
   title: string;
   description?: string;
   is_completed: boolean;
-  priority: string;
+  priority?: string;
   created_at: string;
   updated_at: string;
   user_id: number;
@@ -84,7 +84,9 @@ export default function TodoList() {
     }
   };
 
-  const handleEdit = (task: Task) => {
+  const handleEdit = (id: number) => {
+    const task = todos.find(t => t.id === id);
+    if (!task) return;
     setTitle(task.title);
     setDescription(task.description || '');
     setPriority(task.priority || 'medium');
@@ -222,7 +224,7 @@ export default function TodoList() {
               isCompleted={todo.is_completed}
               onToggle={handleToggle}
               onDelete={handleDelete}
-              onEdit={handleEdit}
+              onEdit={() => handleEdit(todo.id)}
             />
           ))
         )}

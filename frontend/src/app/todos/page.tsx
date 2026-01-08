@@ -14,7 +14,7 @@ interface Task {
   title: string;
   description?: string;
   is_completed: boolean;
-  priority: string;
+  priority?: string;
   created_at: string;
   updated_at: string;
   user_id: number;

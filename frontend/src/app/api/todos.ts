@@ -3,7 +3,7 @@
 
 import { Todo } from '@/lib/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
 
 // Define the interface for API response
 interface ApiResponse<T> {

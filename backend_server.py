@@ -20,10 +20,15 @@ from backend.src.database import create_db_and_tables
 
 app = FastAPI()
 
-# This unblocks the connection between Port 3000 and Port 8002
+# This unblocks the connection between frontend and backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",  # Local Next.js development
+        "http://localhost:3001",  # Alternative local Next.js port
+        "https://*.vercel.app",   # Vercel deployments
+        "http://localhost:8002",  # Allow backend to backend requests
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

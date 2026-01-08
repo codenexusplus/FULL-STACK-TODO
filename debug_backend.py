@@ -1,63 +1,56 @@
 import os
 import sys
+import traceback
 from dotenv import load_dotenv
 
-# Load environment variables from the project root
-project_root = os.path.dirname(os.path.abspath(__file__))
-env_file_path = os.path.join(project_root, '.env')
-load_dotenv(env_file_path)
+print("Starting debug of backend...")
 
-# Add the project root to the Python path so imports work correctly
-sys.path.insert(0, project_root)
+try:
+    # Load environment variables from the project root
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    env_file_path = os.path.join(project_root, '.env')
+    load_dotenv(env_file_path)
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import logging
+    print(f"Project root: {project_root}")
+    print(f"Environment file path: {env_file_path}")
+    print(f"DATABASE_URL from env: {os.getenv('DATABASE_URL')}")
 
-# Set up logging to see detailed errors
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+    # Add both the project root and the backend directory to the Python path
+    sys.path.insert(0, project_root)
+    sys.path.insert(0, os.path.join(project_root, 'backend'))
 
-# Import the API routers using absolute imports
-from backend.src.api import auth, todos
+    print(f"Python path: {sys.path[:3]}...")  # Show first 3 entries
 
-app = FastAPI()
-
-# This unblocks the connection between Port 3000 and Port 8002
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(todos.router, prefix="/api/todos", tags=["todos"])
-
-@app.get("/")
-async def root():
-    return {"message": "Backend is active and CORS is unblocked"}
-
-@app.get("/test-db")
-async def test_db():
     try:
-        from backend.src.database import get_session
-        from sqlmodel import select
-        from backend.src.models.user import User
-        
-        # Test database connection
-        with next(get_session()) as session:
-            result = session.exec(select(User).limit(1))
-            user = result.first()
-            return {"status": "success", "user_found": user is not None}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+        from fastapi import FastAPI
+        print("FastAPI imported successfully")
+    except ImportError as e:
+        print(f"Error importing FastAPI: {e}")
+        traceback.print_exc()
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+    try:
+        from fastapi.middleware.cors import CORSMiddleware
+        print("CORS middleware imported successfully")
+    except ImportError as e:
+        print(f"Error importing CORS middleware: {e}")
+        traceback.print_exc()
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002, log_level="debug", reload=False)
+    try:
+        # Import the API routers using absolute imports
+        from backend.src.api import auth, todos
+        print("Auth and todos imported successfully")
+    except ImportError as e:
+        print(f"Error importing backend modules: {e}")
+        traceback.print_exc()
+
+    try:
+        from backend.src.database import create_db_and_tables
+        print("Database module imported successfully")
+    except ImportError as e:
+        print(f"Error importing database module: {e}")
+        traceback.print_exc()
+
+    print("Debug completed.")
+except Exception as e:
+    print(f"Unexpected error during debug: {e}")
+    traceback.print_exc()
