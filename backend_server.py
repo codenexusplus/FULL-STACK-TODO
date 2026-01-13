@@ -1,51 +1,31 @@
+# backend_server.py
+import uvicorn
 import os
 import sys
-from dotenv import load_dotenv
-
-# Load environment variables from the project root
-project_root = os.path.dirname(os.path.abspath(__file__))
-env_file_path = os.path.join(project_root, '.env')
-load_dotenv(env_file_path)
-
-# Add both the project root and the backend directory to the Python path
-sys.path.insert(0, project_root)
-sys.path.insert(0, os.path.join(project_root, 'backend'))
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-# Import the API routers using absolute imports
-from backend.src.api import auth, todos
-from backend.src.database import create_db_and_tables
-
-app = FastAPI()
-
-# This unblocks the connection between frontend and backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Local Next.js development
-        "http://localhost:3001",  # Alternative local Next.js port
-        "https://*.vercel.app",   # Vercel deployments
-        "http://localhost:8002",  # Allow backend to backend requests
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Create database tables on startup
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
-
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(todos.router, prefix="/api/todos", tags=["todos"])
-
-@app.get("/")
-async def root():
-    return {"message": "Backend is active and CORS is unblocked"}
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    # Check if we're already in the backend directory
+    if os.path.exists('.env') and os.path.exists('src'):
+        # We're already in the backend directory
+        current_dir = os.getcwd()
+        print(f"Running from directory: {current_dir}")
+    else:
+        # Change directory to the 'backend' folder so that all relative paths in the app work correctly
+        # (e.g., loading the .env file)
+        backend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend')
+        if os.path.exists(backend_dir):
+            os.chdir(backend_dir)
+            print(f"Changed to backend directory: {os.getcwd()}")
+        else:
+            print("Backend directory not found. Exiting.")
+            sys.exit(1)
+
+    # Run the uvicorn server
+    # --reload will watch for file changes and restart the server
+    uvicorn.run(
+        "src.main:app",
+        host="0.0.0.0",
+        port=8002,
+        reload=True,
+        log_level="info"
+    )

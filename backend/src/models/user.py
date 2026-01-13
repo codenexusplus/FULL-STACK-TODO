@@ -1,36 +1,43 @@
-from sqlmodel import SQLModel, Field, Relationship
-from pydantic import BaseModel, field_validator
-from typing import Optional, List, TYPE_CHECKING
+from __future__ import annotations
+
+from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, field_validator, ConfigDict
+from typing import Optional
 from datetime import datetime
 
-# Prevent circular imports
-if TYPE_CHECKING:
-    from .todo import Todo
 
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class UserBase(SQLModel):
     email: str = Field(unique=True, index=True)
     name: str
     hashed_password: str
     is_active: bool = Field(default=True)
     email_verified: bool = Field(default=False)
-    image: Optional[str] = None
+    image: Optional[str] = Field(default=None)
+
+
+class User(UserBase, table=True):
+    __tablename__ = "user"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-# Pydantic models for API requests/responses
+
 class UserCreate(BaseModel):
     email: str
     name: str
     password: str
 
-    @field_validator('password')
+    @field_validator("password")
     @classmethod
-    def validate_password_length(cls, v):
+    def validate_password_length(cls, v: str) -> str:
         if len(v) > 72:
-            raise ValueError('Password must not exceed 72 characters due to bcrypt limitations')
+            raise ValueError("Password must not exceed 72 characters")
         return v
 
+
 class UserRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: str
     name: str
@@ -38,6 +45,3 @@ class UserRead(BaseModel):
     is_active: bool
     image: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

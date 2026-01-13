@@ -1,0 +1,35 @@
+# Curl Commands to Verify CORS and Login Endpoint Fixes
+
+## 1. Test OPTIONS Preflight Request
+curl -v -X OPTIONS \
+  -H "Origin: http://localhost:3000" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type" \
+  http://localhost:8002/api/auth/sign-in/email
+
+## 2. Test POST Login Request with JSON
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -H "Origin: http://localhost:3000" \
+  -d '{"username": "test@example.com", "password": "password123"}' \
+  http://localhost:8002/api/auth/sign-in/email
+
+## 3. Test POST Login Request with Form Data
+curl -v -X POST \
+  -H "Origin: http://localhost:3000" \
+  -d "username=test@example.com&password=password123" \
+  http://localhost:8002/api/auth/sign-in/email
+
+## 4. Test with Different Origins
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -H "Origin: http://localhost:3001" \
+  -d '{"username": "test@example.com", "password": "password123"}' \
+  http://localhost:8002/api/auth/sign-in/email
+
+## 5. Test Signup Endpoint
+curl -v -X POST \
+  -H "Content-Type: application/json" \
+  -H "Origin: http://localhost:3000" \
+  -d '{"email": "newuser@example.com", "name": "New User", "password": "password123"}' \
+  http://localhost:8002/api/auth/sign-up/email

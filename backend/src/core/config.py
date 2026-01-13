@@ -11,17 +11,14 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     better_auth_secret: str
     better_auth_url: str
+    next_public_api_base_url: str = "http://localhost:8002"
 
     class Config:
-        env_file = ".env"  # Use the standard pydantic-settings approach
+        # Assuming the script runs from the 'backend' directory,
+        # this will look for a .env file in that directory.
+        env_file = ".env"
+        env_file_encoding = 'utf-8'
 
 
-# Load environment variables from the project root
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-env_file_path = os.path.join(project_root, '.env')
-
-# Load environment variables using python-dotenv
-load_dotenv(dotenv_path=env_file_path)
-
-# Create settings instance using environment variables
+# Create a single, cached settings instance.
 settings = Settings()

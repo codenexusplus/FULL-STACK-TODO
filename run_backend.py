@@ -2,7 +2,15 @@ import os
 import sys
 import threading
 import time
+import logging
 from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from the project root
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -13,28 +21,36 @@ load_dotenv(env_file_path)
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.path.join(project_root, 'backend'))
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 # Import the API routers using absolute imports
 from backend.src.api import auth, todos
 from backend.src.database import create_db_and_tables
 
 app = FastAPI()
 
-# This unblocks the connection between frontend and backend
+# Enhanced CORSMiddleware configuration to handle credentials and preflight requests properly
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Local Next.js development
         "http://localhost:3001",  # Alternative local Next.js port
+        "http://localhost:8002",  # Backend origin for direct API calls
         "https://*.vercel.app",   # Vercel deployments
-        "http://localhost:8002",  # Allow backend to backend requests
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Explicitly allow OPTIONS
     allow_headers=["*"],
+    # Allow all headers including authorization
+    expose_headers=["Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"]
 )
+
+# Global Error Handler to prevent backend crashes
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"GLOBAL ERROR: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error", "detail": str(exc)}
+    )
 
 # Create database tables on startup
 @app.on_event("startup")
@@ -57,12 +73,12 @@ if __name__ == "__main__":
     server_thread = threading.Thread(target=run_server)
     server_thread.daemon = True
     server_thread.start()
-    
+
     print("Server thread started. Waiting for it to initialize...")
     time.sleep(2)  # Give the server some time to start
-    
+
     print("Server should now be running on http://localhost:8002/")
-    
+
     # Keep the main thread alive
     try:
         while True:

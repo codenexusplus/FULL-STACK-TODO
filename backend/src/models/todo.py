@@ -1,21 +1,26 @@
+from __future__ import annotations
+
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
-from sqlalchemy import Column
+from sqlalchemy import Column, DateTime
 
 if TYPE_CHECKING:
     from .user import User
 
-# In classes ko rehne dein taake baqi files crash na hon
+
+# Simple constants (Enums optional but not required)
 class PriorityEnum:
     high = "High"
     medium = "Medium"
     low = "Low"
 
+
 class CategoryEnum:
     work = "Work"
     life = "Life"
     urgent = "Urgent"
+
 
 class TodoBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
@@ -27,32 +32,41 @@ class TodoBase(SQLModel):
     estimated_minutes: Optional[int] = Field(default=None, ge=1)
     recurring_interval: str = Field(default="None")
 
+
 class Todo(TodoBase, table=True):
+    __tablename__ = "todo"
+
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    # updated_at automatically update hone ke liye
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        sa_type=DateTime(timezone=False),
+    )
+
     updated_at: datetime = Field(
         default_factory=datetime.utcnow,
         sa_column=Column(
-            "updated_at",
+            DateTime(timezone=False),
             default=datetime.utcnow,
-            onupdate=datetime.utcnow
-        )
+            onupdate=datetime.utcnow,
+        ),
     )
 
-    # RELATIONSHIP
-    user: Optional["User"] = Relationship()
+    # Fixed SQLModel relationship to avoid SQLAlchemy error
+    user: User = Relationship()
+
 
 class TodoCreate(TodoBase):
     pass
+
 
 class TodoRead(TodoBase):
     id: int
     created_at: datetime
     updated_at: datetime
     user_id: int
+
 
 class TodoUpdate(SQLModel):
     title: Optional[str] = None

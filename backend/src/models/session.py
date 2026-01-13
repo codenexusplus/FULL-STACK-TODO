@@ -1,16 +1,23 @@
+from __future__ import annotations
+
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime
-from .user import User
+
+# Circular import se bachne ke liye
+if TYPE_CHECKING:
+    from .user import User
 
 
-class Session(SQLModel, table=True):
+class SessionModel(SQLModel, table=True):
+    __tablename__ = "session"
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    token: str = Field(unique=True, index=True)  # JWT token
+    token: str = Field(unique=True, index=True)
     user_id: int = Field(foreign_key="user.id")
     expires_at: datetime
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = Field(default=True)
 
-    # Relationship to User
-    user: Optional[User] = Relationship()
+    # Fixed SQLModel relationship to avoid SQLAlchemy error
+    user: User = Relationship()
